@@ -1,0 +1,11 @@
+# Ignore the Gradle cache
+.gradle
+
+# Ignore build output directories
+build
+out
+
+# Ignore other unnecessary files
+.idea
+*.iml
+*.log

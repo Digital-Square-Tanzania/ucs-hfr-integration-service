@@ -1,0 +1,56 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+group = 'com.abt'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    maven {
+        url 'https://repo.akka.io/maven'
+    }
+    mavenCentral()
+}
+
+ext {
+    akkaVersion = '2.9.3'
+    akkaHttpVersion = '10.6.3'
+    scalaBinaryVersion = '2.13'
+}
+
+dependencies {
+    implementation platform("com.typesafe.akka:akka-http-bom_${scalaBinaryVersion}:${akkaHttpVersion}")
+
+    implementation "com.typesafe.akka:akka-http_${scalaBinaryVersion}:${akkaHttpVersion}"
+    implementation "com.typesafe.akka:akka-actor-typed_${scalaBinaryVersion}:${akkaVersion}"
+    implementation "com.typesafe.akka:akka-stream_${scalaBinaryVersion}:${akkaVersion}"
+    implementation "com.typesafe.akka:akka-http-jackson_${scalaBinaryVersion}:${akkaHttpVersion}"
+    implementation 'ch.qos.logback:logback-classic:1.2.13'
+    testImplementation "com.typesafe.akka:akka-http-testkit_${scalaBinaryVersion}:${akkaHttpVersion}"
+    testImplementation "com.typesafe.akka:akka-actor-testkit-typed_${scalaBinaryVersion}:${akkaVersion}"
+    testImplementation 'junit:junit:4.13.2'
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'org.apache.commons:commons-lang3:3.14.0'
+    implementation 'joda-time:joda-time:2.10.8'
+
+    implementation group: 'org.json', name: 'json', version: '20231013'
+    implementation 'commons-io:commons-io:2.15.0'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+shadowJar {
+    version = '1.0.0'
+    archiveClassifier = ''
+    manifest {
+        attributes(
+                'Main-Class': 'com.abt.UcsLabIntegrationServiceApp' // Specify your main class
+        )
+    }
+    mergeServiceFiles {
+        include 'reference.conf'
+    }
+}
