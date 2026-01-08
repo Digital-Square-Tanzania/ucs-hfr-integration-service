@@ -3,7 +3,7 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
-group = 'com.abt'
+group = 'com.moh.go.tz'
 version = '1.0-SNAPSHOT'
 
 repositories {
@@ -45,7 +45,7 @@ shadowJar {
     archiveClassifier = ''
     manifest {
         attributes(
-                'Main-Class': 'com.abt.UcsHfrIntegrationServiceApp' // Specify your main class
+                'Main-Class': 'com.moh.go.tz.UcsHfrIntegrationServiceApp' // Specify your main class
         )
     }
     mergeServiceFiles {
