@@ -321,6 +321,10 @@ public class LocationSyncService {
         if (facilityLoc == null) {
             return;
         }
+        String postOrUpdate = payload.getPostOrUpdate();
+        if (postOrUpdate == null || !postOrUpdate.trim().equalsIgnoreCase("U")) {
+            return;
+        }
         String status = payload.getOperatingStatus();
         if (status == null) {
             return;
