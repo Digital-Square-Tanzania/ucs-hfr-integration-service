@@ -95,6 +95,8 @@ public class LocationSyncService {
                     payload.getFacIdNumber(),
                     "Facility");
 
+            retireOrUnretireIfNeeded(payload, facilityLoc);
+
             ensureLocationExists(
                     wardLoc,
                     buildVillageName(payload),
@@ -313,6 +315,23 @@ public class LocationSyncService {
             }
         }
         return -1;
+    }
+
+    private void retireOrUnretireIfNeeded(HfrFacilityPayload payload, Location facilityLoc) {
+        if (facilityLoc == null) {
+            return;
+        }
+        String status = payload.getOperatingStatus();
+        if (status == null) {
+            return;
+        }
+        String trimmed = status.trim();
+        if (!trimmed.equalsIgnoreCase("Operating")) {
+            String reason = "Operating status: " + trimmed;
+            openmrsClient.retireLocation(facilityLoc.getLocationId(), reason);
+        } else {
+            openmrsClient.unretireLocation(facilityLoc.getLocationId());
+        }
     }
 
     private void addToCaches(Location location) {

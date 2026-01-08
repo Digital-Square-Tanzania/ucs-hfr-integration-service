@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.stream.Collectors;
 
@@ -66,5 +68,53 @@ public class OpenmrsClient {
     public static String stripLeadingSlash(String value) {
         if (value == null) return null;
         return value.startsWith("/") ? value.substring(1) : value;
+    }
+
+    /**
+     * Retire an OpenMRS location with a reason.
+     */
+    public boolean retireLocation(String uuid, String reason) {
+        String reasonParam = reason != null ? URLEncoder.encode(reason, StandardCharsets.UTF_8) : "";
+        String url = stripEndingSlash(baseUrl) + "/ws/rest/v1/location/" + uuid + "?reason=" + reasonParam;
+        HttpURLConnection conn = null;
+        try {
+            conn = createConnection(url, "DELETE");
+            int code = conn.getResponseCode();
+            if (code >= 200 && code < 300) {
+                LOGGER.info("Retired location {} with reason {}", uuid, reason);
+                return true;
+            }
+            LOGGER.error("Failed to retire location {} status {}", uuid, code);
+        } catch (Exception e) {
+            LOGGER.error("Error retiring location {}", uuid, e);
+        } finally {
+            if (conn != null) conn.disconnect();
+        }
+        return false;
+    }
+
+    /**
+     * Unretire an OpenMRS location.
+     */
+    public boolean unretireLocation(String uuid) {
+        String url = stripEndingSlash(baseUrl) + "/ws/rest/v1/location/" + uuid;
+        HttpURLConnection conn = null;
+        try {
+            conn = createConnection(url, "POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            String payload = "{\"retired\":false}";
+            conn.getOutputStream().write(payload.getBytes(StandardCharsets.UTF_8));
+            int code = conn.getResponseCode();
+            if (code >= 200 && code < 300) {
+                LOGGER.info("Unretired location {}", uuid);
+                return true;
+            }
+            LOGGER.error("Failed to unretire location {} status {}", uuid, code);
+        } catch (Exception e) {
+            LOGGER.error("Error unretiring location {}", uuid, e);
+        } finally {
+            if (conn != null) conn.disconnect();
+        }
+        return false;
     }
 }
