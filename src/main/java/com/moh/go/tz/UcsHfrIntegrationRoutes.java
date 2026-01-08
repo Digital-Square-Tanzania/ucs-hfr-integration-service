@@ -1,13 +1,13 @@
-package com.abt;
+package com.moh.go.tz;
 
 import akka.actor.typed.ActorSystem;
 import akka.http.javadsl.marshallers.jackson.Jackson;
 import akka.http.javadsl.model.StatusCodes;
 import akka.http.javadsl.server.Route;
-import com.abt.domain.HfrFacilityPayload;
-import com.abt.domain.SyncResponse;
-import com.abt.service.LocationSyncService;
-import com.abt.util.CustomJacksonSupport;
+import com.moh.go.tz.domain.HfrFacilityPayload;
+import com.moh.go.tz.domain.SyncResponse;
+import com.moh.go.tz.service.LocationSyncService;
+import com.moh.go.tz.util.CustomJacksonSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +18,7 @@ import java.util.concurrent.Executor;
 import static akka.http.javadsl.server.Directives.*;
 
 /**
- * Routes for forwarding results/rejections; kept for compatibility but renamed to HFR context.
+ * Routes that expose HFR facility sync endpoints.
  */
 public class UcsHfrIntegrationRoutes {
     //#routes-class

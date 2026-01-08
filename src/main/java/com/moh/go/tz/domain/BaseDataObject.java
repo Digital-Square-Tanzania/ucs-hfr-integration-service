@@ -1,4 +1,4 @@
-package com.abt.domain;
+package com.moh.go.tz.domain;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 

@@ -1,4 +1,4 @@
-package com.abt.service;
+package com.moh.go.tz.service;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigException;

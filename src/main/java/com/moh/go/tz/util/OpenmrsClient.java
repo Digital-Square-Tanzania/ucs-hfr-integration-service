@@ -1,4 +1,4 @@
-package com.abt.util;
+package com.moh.go.tz.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

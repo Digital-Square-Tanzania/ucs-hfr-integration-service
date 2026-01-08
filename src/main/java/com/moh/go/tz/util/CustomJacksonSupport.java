@@ -1,4 +1,4 @@
-package com.abt.util;
+package com.moh.go.tz.util;
 
 import akka.http.javadsl.marshallers.jackson.Jackson;
 import akka.http.javadsl.marshalling.Marshaller;

@@ -1,4 +1,4 @@
-package com.abt.util;
+package com.moh.go.tz.util;
 
 public class ConnectorConstants {
     public static final String UUID = "uuid";

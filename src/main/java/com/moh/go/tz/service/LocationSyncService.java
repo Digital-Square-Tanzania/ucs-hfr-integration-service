@@ -1,12 +1,12 @@
-package com.abt.service;
+package com.moh.go.tz.service;
 
-import com.abt.domain.HfrFacilityPayload;
-import com.abt.domain.Location;
-import com.abt.domain.SyncResponse;
-import com.abt.util.CapitalizeUtil;
-import com.abt.util.CustomJacksonObjectMapper;
-import com.abt.util.FetchLocationsHelper;
-import com.abt.util.OpenmrsClient;
+import com.moh.go.tz.domain.HfrFacilityPayload;
+import com.moh.go.tz.domain.Location;
+import com.moh.go.tz.domain.SyncResponse;
+import com.moh.go.tz.util.CapitalizeUtil;
+import com.moh.go.tz.util.CustomJacksonObjectMapper;
+import com.moh.go.tz.util.FetchLocationsHelper;
+import com.moh.go.tz.util.OpenmrsClient;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.json.JSONArray;

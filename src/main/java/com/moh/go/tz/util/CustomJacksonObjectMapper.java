@@ -1,4 +1,4 @@
-package com.abt.util;
+package com.moh.go.tz.util;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;

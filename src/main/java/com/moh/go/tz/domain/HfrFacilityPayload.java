@@ -1,4 +1,4 @@
-package com.abt.domain;
+package com.moh.go.tz.domain;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

@@ -1,4 +1,4 @@
-package com.abt.domain;
+package com.moh.go.tz.domain;
 
 public abstract class MotechBaseDataObject {
 

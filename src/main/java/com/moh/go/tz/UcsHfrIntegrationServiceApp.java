@@ -1,4 +1,4 @@
-package com.abt;
+package com.moh.go.tz;
 
 import akka.NotUsed;
 import akka.actor.typed.ActorSystem;
@@ -7,7 +7,7 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.ServerBinding;
 import akka.http.javadsl.server.Route;
-import com.abt.service.LocationSyncService;
+import com.moh.go.tz.service.LocationSyncService;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.CompletionStage;

@@ -1,4 +1,4 @@
-package com.abt.util;
+package com.moh.go.tz.util;
 
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
@@ -6,12 +6,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.abt.domain.Location;
+import com.moh.go.tz.domain.Location;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.abt.util.ConnectorConstants.*;
+import static com.moh.go.tz.util.ConnectorConstants.*;
 
 public class FetchLocationsHelper {
     private static final Logger LOGGER = LoggerFactory.getLogger(FetchLocationsHelper.class);
