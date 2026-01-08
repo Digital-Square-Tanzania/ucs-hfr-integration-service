@@ -7,15 +7,12 @@ group = 'com.abt'
 version = '1.0-SNAPSHOT'
 
 repositories {
-    maven {
-        url 'https://repo.akka.io/maven'
-    }
     mavenCentral()
 }
 
 ext {
-    akkaVersion = '2.9.3'
-    akkaHttpVersion = '10.6.3'
+    akkaVersion = '2.6.21'
+    akkaHttpVersion = '10.2.10'
     scalaBinaryVersion = '2.13'
 }
 
@@ -44,10 +41,11 @@ test {
 
 shadowJar {
     version = '1.0.0'
+    archiveBaseName = 'ucs-hfr-integration-service'
     archiveClassifier = ''
     manifest {
         attributes(
-                'Main-Class': 'com.abt.UcsLabIntegrationServiceApp' // Specify your main class
+                'Main-Class': 'com.abt.UcsHfrIntegrationServiceApp' // Specify your main class
         )
     }
     mergeServiceFiles {
