@@ -130,7 +130,7 @@ public class LocationSyncService {
             return null;
         }
 
-        Location existing = findLocationByCode(code);
+        Location existing = findLocationByCode(code.toUpperCase());
         if (existing != null) {
             String desiredName = name != null ? name.trim() : "";
             String existingName = existing.getName() != null ? existing.getName().trim() : "";
@@ -342,12 +342,12 @@ public class LocationSyncService {
         if (location == null || location.getLocationId() == null) {
             return;
         }
-        locationCache.put(location.getLocationId().toLowerCase(), location);
+        locationCache.put(location.getLocationId().toUpperCase(), location);
         if (location.getAttributes() != null) {
             if (location.getAttributes().get("Code") != null) {
-                codeCache.put(location.getAttributes().get("Code").toLowerCase(), location);
+                codeCache.put(location.getAttributes().get("Code").toUpperCase(), location);
             } else if (location.getAttributes().get("HFR Code") != null) {
-                codeCache.put(location.getAttributes().get("HFR Code").toLowerCase(), location);
+                codeCache.put(location.getAttributes().get("HFR Code").toUpperCase(), location);
             }
         }
     }
@@ -364,12 +364,12 @@ public class LocationSyncService {
 
     private Location findLocationByCode(String code) {
         if (code == null) return null;
-        return codeCache.get(code.toLowerCase());
+        return codeCache.get(code.toUpperCase());
     }
 
     private Location findLocationByUuid(String uuid) {
         if (uuid == null) return null;
-        return locationCache.get(uuid.toLowerCase());
+        return locationCache.get(uuid.toUpperCase());
     }
 
     private String buildWardName(HfrFacilityPayload payload) {
