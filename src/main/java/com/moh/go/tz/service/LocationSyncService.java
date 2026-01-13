@@ -487,7 +487,15 @@ public class LocationSyncService {
                         CapitalizeUtil.capitalizeWords(facilityJson.optString("region")),
                         facilityJson.optString("region_code"),
                         "Region");
-                Location wardLoc = ensureLocationExists(regionLoc,
+                Location districtLoc = ensureLocationExists(regionLoc,
+                        CapitalizeUtil.capitalizeWords(facilityJson.optString("district")),
+                        facilityJson.optString("district_code"),
+                        "District");
+                Location councilLoc = ensureLocationExists(districtLoc,
+                        CapitalizeUtil.capitalizeWords(facilityJson.optString("council")),
+                        facilityJson.optString("council_code"),
+                        "Council");
+                Location wardLoc = ensureLocationExists(councilLoc,
                         CapitalizeUtil.capitalizeWords(facilityJson.optString("ward") + " - " + facilityJson.optString("council")),
                         facilityJson.optString("ward_code"),
                         "Ward");
