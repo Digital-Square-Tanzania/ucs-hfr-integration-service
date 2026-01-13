@@ -1,7 +1,6 @@
 package com.moh.go.tz;
 
 import akka.actor.typed.ActorSystem;
-import akka.http.javadsl.marshallers.jackson.Jackson;
 import akka.http.javadsl.model.StatusCodes;
 import akka.http.javadsl.server.Route;
 import com.moh.go.tz.domain.HfrFacilityPayload;
@@ -40,9 +39,9 @@ public class UcsHfrIntegrationRoutes {
     }
 
     private Route completeResponse(SyncResponse response) {
-        var status = "error".equalsIgnoreCase(response.status()) ? StatusCodes.BAD_REQUEST : StatusCodes.OK;
-        log.info("HFR sync responded with {} - {}", response.status(), response.message());
-        return complete(status, response, Jackson.marshaller());
+        var status = "error".equalsIgnoreCase(response.getStatus()) ? StatusCodes.BAD_REQUEST : StatusCodes.OK;
+        log.info("HFR sync responded with {} - {}", response.getStatus(), response.getMessage());
+        return complete(status, response, CustomJacksonSupport.customJacksonMarshaller());
     }
 
     /**
