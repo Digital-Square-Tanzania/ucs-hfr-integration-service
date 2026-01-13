@@ -172,10 +172,17 @@ public class LocationSyncService {
             LOGGER.info("Created new {}: {}", tag, name);
             allLocations.add(newLoc);
             addToCaches(newLoc);
-        } else {
-            LOGGER.warn("Failed creating new {}: {}", tag, name);
+            return newLoc;
         }
-        return newLoc;
+
+        LOGGER.warn("Failed creating new {}: {}. Checking if it already exists by name", tag, name);
+        Location fallback = findLocationByName(name);
+        if (fallback != null) {
+            LOGGER.info("Found existing {} by name after failed creation: {}", tag, name);
+            ensureLocationCodeUpdated(fallback, code, tag);
+            addToCaches(fallback);
+        }
+        return fallback;
     }
 
     private Location createNewLocation(String name, String parentUuid, Set<String> tags, Map<String, String> attributes) throws Exception {
@@ -367,9 +374,64 @@ public class LocationSyncService {
         return codeCache.get(code.toUpperCase());
     }
 
+    private Location findLocationByName(String name) {
+        if (name == null) return null;
+        for (Location loc : allLocations) {
+            if (loc != null && name.equalsIgnoreCase(loc.getName())) {
+                return loc;
+            }
+        }
+        return null;
+    }
+
     private Location findLocationByUuid(String uuid) {
         if (uuid == null) return null;
         return locationCache.get(uuid.toUpperCase());
+    }
+
+    private void ensureLocationCodeUpdated(Location location, String code, String tag) {
+        if (location == null || code == null) return;
+        String attributeKey = "facility".equalsIgnoreCase(tag) ? "HFR Code" : "Code";
+        String attributeTypeUuid = "facility".equalsIgnoreCase(tag) ? hfrCodeLocationAttributeUuid : codeLocationAttributeUuid;
+        String current = location.getAttributes() != null ? location.getAttributes().get(attributeKey) : null;
+        if (current != null && current.equalsIgnoreCase(code)) {
+            return;
+        }
+
+        String url = OpenmrsClient.stripEndingSlash(openmrsBaseUrl) + "/ws/rest/v1/location/" + location.getLocationId();
+        for (int attempt = 1; attempt <= DEFAULT_MAX_ATTEMPTS; attempt++) {
+            HttpURLConnection conn = null;
+            try {
+                conn = openmrsClient.createConnection(url, "POST");
+                conn.setRequestProperty("Content-Type", "application/json");
+                JSONObject attribute = new JSONObject();
+                attribute.put("attributeType", attributeTypeUuid);
+                attribute.put("value", code);
+                JSONArray attributesArray = new JSONArray();
+                attributesArray.put(attribute);
+                JSONObject requestJson = new JSONObject();
+                requestJson.put("attributes", attributesArray);
+                try (OutputStream os = conn.getOutputStream()) {
+                    os.write(requestJson.toString().getBytes(StandardCharsets.UTF_8));
+                }
+                int responseCode = conn.getResponseCode();
+                LOGGER.info("Add/update location attribute response code {}", responseCode);
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    if (location.getAttributes() == null) {
+                        location.setAttributes(new HashMap<>());
+                    }
+                    location.getAttributes().put(attributeKey, code);
+                    codeCache.put(code.toUpperCase(), location);
+                    return;
+                }
+            } catch (Exception e) {
+                LOGGER.error("Error updating code attribute for {}", location.getName(), e);
+            } finally {
+                if (conn != null) {
+                    conn.disconnect();
+                }
+            }
+        }
     }
 
     private String buildWardName(HfrFacilityPayload payload) {
