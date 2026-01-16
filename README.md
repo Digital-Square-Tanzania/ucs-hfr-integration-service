@@ -79,7 +79,7 @@ Update `application.conf` found in `src/main/resources/` with the correct config
 ### Run/start
 `docker build -t ucs-hfr-integration-service .`
 
-`docker run -d -p 127.0.0.1:9204:8080 ucs-hfr-integration-service`
+`docker run -d --add-host=host.docker.internal:host-gateway -p 127.0.0.1:9204:8080 ucs-hfr-integration-service`
 
 
 ### Interact With Shell
