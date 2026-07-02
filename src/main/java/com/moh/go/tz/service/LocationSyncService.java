@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -126,7 +127,9 @@ public class LocationSyncService {
 
     private synchronized Location ensureLocationExists(Location parentLocation, String name, String code, String tag) throws Exception {
         if (code == null || code.isEmpty()) {
-            LOGGER.warn("Skipping {} creation because code is missing for {}", tag, name);
+            LOGGER.warn("Skipping {} location because code is missing. name={}, parentName={}, parentUuid={}",
+                    tag, name, parentLocation != null ? parentLocation.getName() : null,
+                    parentLocation != null ? parentLocation.getLocationId() : null);
             return null;
         }
 
@@ -140,12 +143,16 @@ public class LocationSyncService {
             }
 
             if (existing.getParentLocation() == null && parentLocation != null) {
-                LOGGER.warn("Location {} has no parent, setting to {}", existing.getName(), parentLocation.getName());
+                LOGGER.warn("Existing {} location {} ({}) with code {} has no parent. Updating parent to {} ({})",
+                        tag, existing.getName(), existing.getLocationId(), code, parentLocation.getName(), parentLocation.getLocationId());
                 updateChildLocationParent(existing, parentLocation.getLocationId());
                 existing.setParentLocation(parentLocation);
             } else if (existing.getParentLocation() != null && parentLocation != null &&
                     !existing.getParentLocation().getLocationId().equals(parentLocation.getLocationId())) {
-                LOGGER.warn("Location {} parent mismatch. Updating parent to {}", existing.getName(), parentLocation.getName());
+                LOGGER.warn("Existing {} location {} ({}) with code {} has parent mismatch. Current parent is {} ({}). Desired parent is {} ({})",
+                        tag, existing.getName(), existing.getLocationId(), code,
+                        existing.getParentLocation().getName(), existing.getParentLocation().getLocationId(),
+                        parentLocation.getName(), parentLocation.getLocationId());
                 updateChildLocationParent(existing, parentLocation.getLocationId());
                 existing.setParentLocation(parentLocation);
             }
@@ -153,7 +160,8 @@ public class LocationSyncService {
         }
 
         if (parentLocation == null && !"Region".equalsIgnoreCase(tag)) {
-            LOGGER.warn("Parent location missing for {} with name {}", tag, name);
+            LOGGER.warn("Cannot create {} location because parent location is missing. name={}, code={}",
+                    tag, name, code);
             return null;
         }
 
@@ -169,18 +177,28 @@ public class LocationSyncService {
         Location newLoc = createNewLocation(name, parentUuid, tags, attributes);
 
         if (newLoc != null) {
-            LOGGER.info("Created new {}: {}", tag, name);
+            LOGGER.info("Created new {} location {} ({}) with code {} under parent {} ({})",
+                    tag, newLoc.getName(), newLoc.getLocationId(), code,
+                    parentLocation != null ? parentLocation.getName() : null,
+                    parentLocation != null ? parentLocation.getLocationId() : null);
             allLocations.add(newLoc);
             addToCaches(newLoc);
             return newLoc;
         }
 
-        LOGGER.warn("Failed creating new {}: {}. Checking if it already exists by name", tag, name);
+        LOGGER.warn("Failed creating new {} location. Checking if it already exists by name. name={}, code={}, parentName={}, parentUuid={}",
+                tag, name, code, parentLocation != null ? parentLocation.getName() : null,
+                parentLocation != null ? parentLocation.getLocationId() : null);
         Location fallback = findLocationByName(name);
         if (fallback != null) {
-            LOGGER.info("Found existing {} by name after failed creation: {}", tag, name);
+            LOGGER.info("Found existing {} location by name after failed creation. name={}, uuid={}, code={}. Ensuring code attribute is set",
+                    tag, fallback.getName(), fallback.getLocationId(), code);
             ensureLocationCodeUpdated(fallback, code, tag);
             addToCaches(fallback);
+        } else {
+            LOGGER.warn("No existing {} location found by name after failed creation. name={}, code={}, parentName={}, parentUuid={}",
+                    tag, name, code, parentLocation != null ? parentLocation.getName() : null,
+                    parentLocation != null ? parentLocation.getLocationId() : null);
         }
         return fallback;
     }
@@ -266,8 +284,12 @@ public class LocationSyncService {
 
     private void updateChildLocationParent(Location child, String newParentUuid) {
         String url = OpenmrsClient.stripEndingSlash(openmrsBaseUrl) + "/ws/rest/v1/location/" + child.getLocationId();
+        Location currentParent = child.getParentLocation();
+        String currentParentUuid = currentParent != null ? currentParent.getLocationId() : null;
+        String currentParentName = currentParent != null ? currentParent.getName() : null;
         for (int attempt = 1; attempt <= DEFAULT_MAX_ATTEMPTS; attempt++) {
             HttpURLConnection conn = null;
+            String requestBody = null;
             try {
                 conn = openmrsClient.createConnection(url, "POST");
                 conn.setRequestProperty("Content-Type", "application/json");
@@ -275,24 +297,58 @@ public class LocationSyncService {
                 parentLocationJson.put("uuid", newParentUuid);
                 JSONObject requestJson = new JSONObject();
                 requestJson.put("parentLocation", parentLocationJson);
+                requestBody = requestJson.toString();
                 try (OutputStream os = conn.getOutputStream()) {
-                    os.write(requestJson.toString().getBytes(StandardCharsets.UTF_8));
+                    os.write(requestBody.getBytes(StandardCharsets.UTF_8));
                 }
                 int responseCode = conn.getResponseCode();
-                LOGGER.info("Update child parent response code {}", responseCode);
                 if (responseCode == HttpURLConnection.HTTP_OK) {
+                    LOGGER.info("Updated parent for location {} ({}) from {} ({}) to {} on attempt {}",
+                            child.getName(), child.getLocationId(), currentParentName, currentParentUuid, newParentUuid, attempt);
                     Location newParent = findLocationByUuid(newParentUuid);
                     child.setParentLocation(newParent);
                     return;
                 }
+                LOGGER.error("Failed to update parent for location {} ({}) from {} ({}) to {} on attempt {}/{}. POST {} returned status {}. Request payload: {}. Response body: {}",
+                        child.getName(), child.getLocationId(), currentParentName, currentParentUuid, newParentUuid,
+                        attempt, DEFAULT_MAX_ATTEMPTS, url, responseCode, requestBody, readResponseBody(conn));
             } catch (Exception e) {
-                LOGGER.error("Error updating child parent for {}", child.getName(), e);
+                LOGGER.error("Error updating parent for location {} ({}) from {} ({}) to {} on attempt {}/{}. POST {}. Request payload: {}",
+                        child.getName(), child.getLocationId(), currentParentName, currentParentUuid, newParentUuid,
+                        attempt, DEFAULT_MAX_ATTEMPTS, url, requestBody, e);
             } finally {
                 if (conn != null) {
                     conn.disconnect();
                 }
             }
         }
+    }
+
+    private String readResponseBody(HttpURLConnection conn) {
+        try {
+            if (conn.getErrorStream() != null) {
+                try (BufferedReader in = new BufferedReader(new InputStreamReader(conn.getErrorStream()))) {
+                    return readAll(in);
+                }
+            }
+            if (conn.getInputStream() != null) {
+                try (BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                    return readAll(in);
+                }
+            }
+        } catch (IOException e) {
+            return "Unable to read response body: " + e.getMessage();
+        }
+        return "";
+    }
+
+    private String readAll(BufferedReader in) throws IOException {
+        StringBuilder response = new StringBuilder();
+        String inputLine;
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+        }
+        return response.toString();
     }
 
     private int updateLocationName(Location location, String newName) {
