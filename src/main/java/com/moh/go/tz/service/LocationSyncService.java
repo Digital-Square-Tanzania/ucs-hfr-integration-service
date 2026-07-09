@@ -511,17 +511,17 @@ public class LocationSyncService {
         return CapitalizeUtil.capitalizeWords(String.format("%s - %s", payload.getName(), payload.getFacIdNumber()));
     }
 
-    private String resolveWardCode(HfrFacilityPayload payload) {
+    static String resolveWardCode(HfrFacilityPayload payload) {
         if (payload.getWardCode() != null && !payload.getWardCode().isBlank()) {
-            return payload.getWardCode();
+            return payload.getWardCode().trim();
         }
         if (payload.getVillageCode() != null && payload.getVillageCode().contains(".")) {
             int idx = payload.getVillageCode().lastIndexOf(".");
             if (idx > 0) {
-                return payload.getVillageCode().substring(0, idx);
+                return payload.getVillageCode().substring(0, idx).trim();
             }
         }
-        return payload.getCouncilCode();
+        return null;
     }
 
     private String valueOrEmpty(String value) {
